@@ -24,8 +24,7 @@ class WordTokenizer():
     @abstractmethod
     def tokenize(self, text):
         """
-        Build a stoplist based on string or list of strings. This method
-        should be overridden by subclasses of Stoplist.
+        This method should be overridden by subclasses of WordTokenizer.
         """
 
 class StringWordTokenizer(WordTokenizer):
@@ -35,6 +34,9 @@ class StringWordTokenizer(WordTokenizer):
 
     def tokenize(self, text):
         return text.split()
+
+class RegexWordTokenizer(WordTokenizer):
+    pass
 
 
 if __name__ == "__main__":
