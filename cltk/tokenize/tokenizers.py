@@ -10,10 +10,10 @@ from abc import abstractmethod
 from cltk.utils.cltk_logger import logger
 
 class WordTokenizer():
-    """Abstract class for word tokenization"
+    """Abstract class for word tokenization"""
 
     def __init__(self, language=None):
-        """ Initialize WordTokenizer with option for language specific parameters
+        """Initialize WordTokenizer with option for language specific parameters
         :type language: str
         :param language : text from which to build the stoplist
         """
@@ -35,7 +35,7 @@ class StringWordTokenizer(WordTokenizer):
 
     def tokenize(self, text):
         return text.split()
-        
+
 
 if __name__ == "__main__":
     pass
