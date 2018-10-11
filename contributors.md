@@ -7,6 +7,14 @@ CLTK Core authors, ordered alphabetically by first name
 ## Andreas Grivas <andreasgrv@gmail.com>
 * cltk/utils/file_operations.py
 
+## Andrew Deloucas <ADeloucas@g.harvard.com>
+* cltk/corpus/akkadian/cdli_corpus.py
+* cltk/corpus/akkadian/corpora.py
+* cltk/corpus/akkadian/file_importer.py
+* cltk/corpus/akkadian/pretty_print.py
+* cltk/corpus/akkadian/tokenizer.py
+* cltk/stem/akkadian/atf_converter.py
+
 ## Anoop Kunchukuttan
 * cltk/stem/sanskrit/indian_syllabifier.py
 * cltk/tokenize/sentence.py
@@ -27,13 +35,22 @@ CLTK Core authors, ordered alphabetically by first name
 * cltk/phonology/middle_english/transcription.py
 * cltk/stop/middle_high_german/stops.py
 
-## Clément Besnier <clemsciences@aol.com> <GitHub:clemsciences>
+## Clément Besnier <clemsciences@aol.com>
+* cltk/corpus/old_norse/runes.py
+* cltk/inflection/old_norse/nouns.py
+* cltk/prosody/old_norse/verse.py
 * cltk/stop/old_norse/stops.py
-* cltk/phonology/utils.py
+* cltk/tests/test_languages/test_old_norse.py
+* cltk/tests/test_nlp/test_inflection.py
+
+## Clément Besnier <clemsciences@gmail.com>
+* cltk/phonology/gothic/transcription.py
 * cltk/phonology/old_norse/transcription.py
 * cltk/phonology/old_swedish/transcription.py
-* cltk/phonology/gothic/transcription.py
-* cltk/prosody/old_norse/verse.py
+* cltk/phonology/utils.py
+
+## Clément Besnier <clemsicences@aol.com>
+* cltk/corpus/old_norse/syllabifier.py
 
 ## Dhruv Apte
 * cltk/corpus/gujarati/alphabet.py
@@ -45,13 +62,27 @@ CLTK Core authors, ordered alphabetically by first name
 * cltk/corpus/egyptian/transliterate_mdc.py
 
 ## Eleftheria Chatziargyriou <ele.hatzy@gmail.com>
+* cltk/phonology/syllabify.py
 * cltk/stem/middle_english/stem.py
 * cltk/stem/middle_high_german/stem.py
+* cltk/tests/test_languages/test_middle_high_german.py
+* cltk/text_reuse/automata.py
+* cltk/text_reuse/levenshtein.py
+
+## Eleftheria Chatziargyriou ele.hatzy@gmail.com
+* cltk/text_reuse/comparison.py
 
 ## Jack Duff <jmunroeduff@gmail.com>
 * cltk/phonology/greek/transcription.py
 * cltk/phonology/latin/transcription.py
-* cltk/tests/test_phonology.py
+* cltk/tests/test_nlp/test_phonology.py
+
+## James Gawley <james.gawley@gmail.com
+* cltk/tests/test_nlp/test_semantics.py
+
+## John Stewart <johnstewart@aya.yale.edu>
+* cltk/tests/test_languages/test_middle_english.py
+* cltk/tests/test_languages/test_old_english.py
 
 ## Kyle P. Johnson <kyle@kyle-p-johnson.com>
 * cltk/corpus/greek/beta_to_unicode.py
@@ -63,7 +94,6 @@ CLTK Core authors, ordered alphabetically by first name
 * cltk/stem/latin/j_v.py
 * cltk/stem/lemma.py
 * cltk/stop/greek/stops.py
-* cltk/stop/latin/stops.py
 * cltk/tag/pos.py
 * cltk/tokenize/sentence.py
 * cltk/utils/cltk_logger.py
@@ -78,7 +108,7 @@ CLTK Core authors, ordered alphabetically by first name
 ## Luke Hollis <lukehollis@gmail.com>
 * cltk/stem/latin/stem.py
 * cltk/stem/latin/syllabifier.py
-* cltk/tests/test_text_reuse.py
+* cltk/tests/test_nlp/test_text_reuse.py
 * cltk/text_reuse/comparison.py
 * cltk/text_reuse/levenshtein.py
 * cltk/text_reuse/text_reuse.py
@@ -90,7 +120,7 @@ CLTK Core authors, ordered alphabetically by first name
 * cltk/stem/akkadian/declension.py
 * cltk/stem/akkadian/stem.py
 * cltk/stem/akkadian/syllabifier.py
-* cltk/tests/test_akkadian.py
+* cltk/stop/akkadian/stops.py
 
 ## Mahesh Bhosale <bhosalems24@gmail.com>
 * cltk/corpus/marathi/alphabet.py
@@ -102,7 +132,8 @@ CLTK Core authors, ordered alphabetically by first name
 * cltk/lemmatize/french/lemma.py
 * cltk/stem/french/stem.py
 * cltk/tag/ner.py
-* cltk/tests/test_lemmatize.py
+* cltk/tests/test_nlp/test_lemmatize.py
+* cltk/tests/test_nlp/test_semantics.py
 
 ## Nimit Bhardwaj <nimitbhardwaj@gmail.com>
 * cltk/corpus/punjabi/alphabet.py
@@ -120,9 +151,10 @@ CLTK Core authors, ordered alphabetically by first name
 * cltk/corpus/latin/__init__.py
 * cltk/corpus/swadesh.py
 * cltk/lemmatize/latin/backoff.py
+* cltk/stop/classical_chinese.py
 * cltk/stop/stop.py
-* cltk/tests/test_lemmatize.py
-* cltk/tokenize/line.py
+* cltk/tests/test_nlp/test_lemmatize.py
+* cltk/tests/test_nlp/test_semantics.py
 
 ## Sourav Singh <ssouravsingh12@gmail.com>
 * cltk/stop/old_english/stops.py
