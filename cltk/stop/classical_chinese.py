@@ -22,8 +22,8 @@ class CorpusStoplist(BaseCorpusStoplist):
 
     def _remove_punctuation(self, texts, punctuation):
         # Change replacement pattern for 'char' analyzer parameter
-        translator = str.maketrans({key: "" for key in punctuation}) 
-        texts = [text.translate(translator) for text in texts] 
+        translator = str.maketrans({key: "" for key in punctuation})
+        texts = [text.translate(translator) for text in texts]
         return texts
 
 
@@ -36,4 +36,4 @@ if __name__ == "__main__":
 
     S = CorpusStoplist()
     print(S.build_stoplist(test_corpus, size=10,
-                    basis='zou', inc_values=True))
+                basis='frequency', inc_values=False))
