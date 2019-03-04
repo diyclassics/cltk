@@ -3,7 +3,9 @@ from cltk.lemmatize.french.french import regex
 import os
 import importlib.machinery
 
-__author__ = ['Natasha Voake <natashavoake@gmail.com>']
+from cltk.utils.file_operations import open_pickle
+
+__author__ = ['Natasha Voake <natashavoake@gmail.com>', 'Patrick J. Burns <patrick@diyclassics.org']
 __license__ = 'MIT License. See LICENSE.'
 
 
@@ -11,37 +13,21 @@ class LemmaReplacer(object):  # pylint: disable=too-few-public-methods
     """Lemmatize French words by replacing input words with corresponding
     values from a replacement list.
     """
+
+    models_path = os.path.expanduser('~/cltk_data/french/text/french_data_cltk')
+
     def __init__(self):
+        """
+        """
+        self.models_path = LemmaReplacer.models_path
 
-        self.entries = self._load_entries()
-        self.forms_and_lemmas = self._load_forms_and_lemmas()
+        missing_models_message = "LemmaReplacer requires the ```french_data_cltk``` to be in cltk_data. Please load this corpus."
 
-    def _load_entries(self):
-        """Check for availability of lemmatizer for French."""
-
-        rel_path = os.path.join('~','cltk_data',
-                                'french',
-                                'text','french_data_cltk'
-                                ,'entries.py')
-        path = os.path.expanduser(rel_path)
-        #logger.info('Loading entries. This may take a minute.')
-        loader = importlib.machinery.SourceFileLoader('entries', path)
-        module = loader.load_module()
-        entries = module.entries
-        return entries
-
-    def _load_forms_and_lemmas(self):
-
-        rel_path = os.path.join('~', 'cltk_data',
-                                'french',
-                                'text', 'french_data_cltk',
-                                'forms_and_lemmas.py')
-        path = os.path.expanduser(rel_path)
-        # logger.info('Loading forms and lemmas. This may take a minute.')
-        loader = importlib.machinery.SourceFileLoader('forms_and_lemmas', path)
-        module = loader.load_module()
-        forms_and_lemmas = module.forms_and_lemmas
-        return forms_and_lemmas
+        try:
+            self.entries = open_pickle(os.path.join(self.models_path,'entries.pickle'))
+            self.forms_and_lemmas = open_pickle(os.path.join(self.models_path,'forms_and_lemmas.pickle'))
+        except FileNotFoundError as err:
+            raise type(err)(missing_models_message)
 
     def lemmatize(self, tokens):
         """define list of lemmas"""
@@ -73,3 +59,9 @@ class LemmaReplacer(object):  # pylint: disable=too-few-public-methods
                         lemmatized.append(lemmed)
         return lemmatized
 
+if __name__ == '__main__':
+
+    from pprint import pprint
+    l = LemmaReplacer()
+    lemmas = l.lemmatize('ne me mandez nule foiz mais'.split())
+    pprint(lemmas)
