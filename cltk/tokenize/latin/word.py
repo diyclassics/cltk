@@ -41,7 +41,7 @@ class LatinPunktWordTokenizer(BasePunktWordTokenizer):
             split_words = self._latin_replacements
         if split_words:
             text = self._replace_patterns(text, split_words)
-        
+        text = text.replace(' \'', ' \' ') # Handle lead apostrophe problem
         sents = self.sent_tokenizer.tokenize(text)
         if split_enclitics:
             sents = self._split_enclitics(sents, split_enclitics)
