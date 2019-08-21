@@ -103,10 +103,3 @@ class LatinPunktWordTokenizer(BasePunktWordTokenizer):
         for pattern in patterns:
             text = re.sub(pattern[0], self._matchcase(pattern[1]), text, flags=re.IGNORECASE)
         return text
-
-
-if __name__ == "__main__":
-    word_tokenizer = WordTokenizer()
-    text = "apostrophe 'da pedicare' here"
-    tokens = word_tokenizer.tokenize(text)
-    print(tokens)

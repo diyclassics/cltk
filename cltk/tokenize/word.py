@@ -22,6 +22,8 @@ import cltk.corpus.arabic.utils.pyarabic.araby as araby
 from cltk.tokenize.latin.sentence import LatinPunktSentenceTokenizer
 from cltk.tokenize.greek.sentence import GreekRegexSentenceTokenizer
 
+from cltk.tokenize.latin.params import ABBREVIATIONS, latin_exceptions, latin_replacements
+
 from cltk.tokenize.akkadian.word import tokenize_akkadian_words, tokenize_akkadian_signs
 
 from cltk.tokenize.middle_english.params import MiddleEnglishTokenizerPatterns
@@ -67,7 +69,7 @@ class WordTokenizer:  # pylint: disable=too-few-public-methods
             tokenizer = BasePunktWordTokenizer('greek', GreekRegexSentenceTokenizer)
             tokens = tokenizer.tokenize(string)
         elif self.language == 'latin':
-            tokenizer = BasePunktWordTokenizer('latin', LatinPunktSentenceTokenizer)
+            tokenizer = LatinPunktWordTokenizer()
             tokens = tokenizer.tokenize(string)
         elif self.language == 'old_norse':
             tokenizer = BaseRegexWordTokenizer('old_norse', OldNorseTokenizerPatterns)
@@ -193,3 +195,132 @@ class BaseArabyWordTokenizer(BaseWordTokenizer):
         :type text: str
         """
         return araby.tokenize(text)
+
+class LatinPunktWordTokenizer(BasePunktWordTokenizer):
+    """
+    PunktSentenceTokenizer trained on Latin
+    """
+    def __init__(self: object, language:str = 'latin', sent_tokenizer=LatinPunktSentenceTokenizer):
+        """
+        :param language : language for word tokenization
+        :type language: str
+        """
+        super().__init__(language='latin')
+        self.sent_tokenizer = sent_tokenizer()
+        self._latin_replacements = latin_replacements
+
+    def tokenize(self, text: str, split_enclitics:list = ['ne', 'n', 'que', 've', 'ue', 'st'],
+                                  split_words:list = []):
+        """
+        :rtype: list
+        :param text: text to be tokenized into sentences
+        :type text: str
+        :param model: tokenizer object to used # Should be in init?
+        :type model: object
+        """
+        if self._latin_replacements:
+            split_words = self._latin_replacements
+        if split_words:
+            text = self._replace_patterns(text, split_words)
+        text = text.replace(' \'', ' \' ') # Handle lead apostrophe problem
+        sents = self.sent_tokenizer.tokenize(text)
+        if split_enclitics:
+            sents = self._split_enclitics(sents, split_enclitics)
+        tokenizer = TreebankWordTokenizer()
+        return [item for sublist in tokenizer.tokenize_sents(sents) for item in sublist]
+
+    def _split_enclitics(self:object, sents:list, enclitics: list):
+        import string
+        exclude_flag = '~'
+        if 'ne' in enclitics and 'n' in enclitics:
+            ne_compile = re.compile(r'^\b(\w+?)([n]e?)[%s]?\b'%re.escape(string.punctuation))
+        elif 'ne' in enclitics:
+            ne_compile = re.compile(r'^\b(\w+?)(ne)[%s]?\b'%re.escape(string.punctuation))
+        elif 'n' in enclitics:
+            ne_compile = re.compile(r'^\b(\w+?)(n)[%s]?\b'%re.escape(string.punctuation))
+
+        enclitics_ = [enc for enc in enclitics if enc is not 'ne' and enc is not 'n']
+        if len(enclitics_) > 1:
+            if "que" in enclitics_ and 'ue' in enclitics_:
+                enclitics_.remove('que')
+                enclitics_.remove('ue')
+                enclitics_.append('q?ue')
+            enclitics_string = "|".join(enclitics_)
+            enc_compile = re.compile(r'\b(?<!~)(\w+?)(%s)[%s]?\b'%(enclitics_string, re.escape(string.punctuation)))
+
+        sent_tokens_ = []
+        for sent in sents:
+            for word in latin_exceptions:
+                sent = re.sub(rf'\b{word}\b', self._matchcase(rf'~{word}~'), sent, flags=re.IGNORECASE)
+            sent = " ".join(filter(None, ne_compile.split(sent)))
+            sent = " ".join(filter(None, enc_compile.split(sent)))
+            for enclitic in enclitics:
+                if enclitic == 'st':
+                    sent = sent.replace('u st ', 'us st ')
+                    sent = re.sub(rf'[^%s]\b{enclitic}\b'%(exclude_flag), f' e{enclitic}', sent)
+                elif enclitic == 'n':
+                    sent = re.sub(rf'[^%s]\b{enclitic}\b'%(exclude_flag), f' -{enclitic}e', sent)
+                else:
+                    sent = re.sub(rf'[^%s]\b{enclitic}\b'%(exclude_flag), f' -{enclitic}', sent)
+            sent = sent.replace('~','')
+            sent_tokens_.append(" ".join(sent.split()))
+        return sent_tokens_
+
+    def _matchcase(self, word):
+        # From Python Cookbook, p. 47
+        def replace(m):
+            text = m.group()
+            if text.isupper():
+                return word.upper()
+            elif text.islower():
+                return word.lower()
+            elif text[0].isupper():
+                return word.title()
+            else:
+                return word
+        return replace
+
+    def _replace_patterns(self, text: str, patterns: list):
+        for pattern in patterns:
+            text = re.sub(pattern[0], self._matchcase(pattern[1]), text, flags=re.IGNORECASE)
+        return text
+
+if __name__ == "__main__":
+    word_tokenizer = WordTokenizer('latin')
+    tests = ['Arma virumque cano, Troiae qui primus ab oris.',
+                 'Hoc verumst, tota te ferri, Cynthia, Roma, et non ignota vivere nequitia?',
+                 'Nec te decipiant veteres circum atria cerae. Tolle tuos tecum, pauper amator, avos!',
+                 'Neque enim, quod quisque potest, id ei licet, nec, si non obstatur, propterea etiam permittitur.',
+                 'Quid opust verbis? lingua nullast qua negem quidquid roges.',
+                 'Textile post ferrumst, quia ferro tela paratur, nec ratione alia possunt tam levia gigni insilia ac fusi, radii, scapique sonantes.',
+                 # pylint: disable=line-too-long
+                 'Dic sodes mihi, bellan videtur specie mulier?',
+                 'Cenavin ego heri in navi in portu Persico?',
+                 'quae ripas Ubiorum contingebat in longitudinem pedum ducentorum rescindit']
+
+    results = []
+
+    for test in tests:
+        result = word_tokenizer.tokenize(test)
+        results.append(result)
+
+    target = [
+        ['Arma', 'virum', '-que', 'cano', ',', 'Troiae', 'qui', 'primus', 'ab', 'oris', '.'],
+        ['Hoc', 'verum', 'est', ',', 'tota', 'te', 'ferri', ',', 'Cynthia', ',', 'Roma', ',',
+         'et', 'non', 'ignota', 'vivere', 'nequitia', '?'],
+        ['Nec', 'te', 'decipiant', 'veteres', 'circum', 'atria', 'cerae', '.', 'Tolle', 'tuos',
+         'cum', 'te', ',', 'pauper', 'amator', ',', 'avos', '!'],
+        ['Neque', 'enim', ',', 'quod', 'quisque', 'potest', ',', 'id', 'ei', 'licet', ',',
+         'nec', ',', 'si', 'non', 'obstatur', ',', 'propterea', 'etiam', 'permittitur', '.'],
+        ['Quid', 'opus', 'est', 'verbis', '?', 'lingua', 'nulla', 'est', 'qua', 'negem',
+         'quidquid', 'roges', '.'],
+        ['Textile', 'post', 'ferrum', 'est', ',', 'quia', 'ferro', 'tela', 'paratur', ',',
+         'nec', 'ratione', 'alia', 'possunt', 'tam', 'levia', 'gigni', 'insilia', 'ac', 'fusi',
+         ',', 'radii', ',', 'scapi', '-que', 'sonantes', '.'],
+        ['Dic', 'si', 'audes', 'mihi', ',', 'bella', '-ne', 'videtur', 'specie', 'mulier', '?'],
+        ['Cenavi', '-ne', 'ego', 'heri', 'in', 'navi', 'in', 'portu', 'Persico', '?'],
+        ['quae', 'ripas', 'Ubiorum', 'contingebat', 'in', 'longitudinem', 'pedum', 'ducentorum',
+         'rescindit']]
+
+    for i, item in enumerate(zip(results, target)):
+        print(f'{i}:\n{item[0]}\n{item[1]}')
