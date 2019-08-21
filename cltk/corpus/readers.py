@@ -2,6 +2,7 @@
 import json
 import os
 import re
+import xml.etree.ElementTree as ET
 import codecs
 import time
 
@@ -10,6 +11,7 @@ from typing import List, Dict, Tuple, Set, Any, Generator
 
 from nltk.corpus.reader.api import CorpusReader
 from nltk.corpus.reader import PlaintextCorpusReader
+from nltk.corpus.reader import XMLCorpusReader
 from nltk.probability import FreqDist
 from nltk.tokenize import sent_tokenize, word_tokenize  # Replace with CLTK
 from nltk import pos_tag  # Replace with CLTK
@@ -525,3 +527,200 @@ class TesseraeCorpusReader(PlaintextCorpusReader):
             'sppar': round((counts['sents'] / counts['paras']), 3),
             'secs': round((time.time() - started), 3),
         }
+
+
+# WRITE DOCSTRING
+class TEICorpusReader(XMLCorpusReader):
+    """
+    """
+
+    def __init__(self, root, fileids=r'.*\.xml', encoding='utf8', skip_keywords=None,
+                 **kwargs):
+        """
+        :param root: The file root of the corpus directory
+        :param fileids: the list of file ids to consider, or wildcard expression
+        :param skip_keywords: a list of words which indicate whole paragraphs that should
+        be skipped by the paras and words methods()
+        :param encoding: utf8
+        :param kwargs: Any values to be passed to NLTK super classes, such as sent_tokenizer,
+        word_tokenizer.
+        """
+        # Initialize the NLTK corpus reader objects
+        XMLCorpusReader.__init__(self, root, fileids, encoding)
+        self.ns = {'tei': 'http://www.tei-c.org/ns/1.0'}
+        # CorpusReader.__init__(self, root, fileids, encoding)
+        # if 'sent_tokenizer' in kwargs:
+        #     self._sent_tokenizer = kwargs['sent_tokenizer']
+        # if 'word_tokenizer' in kwargs:
+        #     self._word_tokenizer = kwargs['word_tokenizer']
+        # if 'pos_tagger' in kwargs:
+        #     self.pos_tagger = kwargs['pos_tagger']
+
+    def node_text(self, node):
+        """https://stackoverflow.com/a/7500304/1816347"""
+        if node.text:
+            result = node.text
+        else:
+            result = ''
+        for child in node:
+            if child.tail is not None:
+                result += child.tail
+        return result
+
+    def docs(self: object, fileids: str):
+        """
+        Returns the complete text of a .xml file, closing the document after
+        we are done reading it and yielding it in a memory-safe fashion.
+        """
+
+        for path, encoding in self.abspaths(fileids, include_encoding=True):
+            with codecs.open(path, 'r', encoding=encoding) as f:
+                yield f.read()
+
+    def bodies(self: object, fileids: str):
+        """
+        Returns the <body> element of a .xml file, closing the document after
+        we are done reading it and yielding it in a memory-safe fashion.
+        """
+
+        for path, encoding in self.abspaths(fileids, include_encoding=True):
+            with codecs.open(path, 'r', encoding=encoding) as f:
+                tree = ET.parse(f)
+                root = tree.getroot()
+                body_xml = root.find('.//tei:body', self.ns)
+                yield body_xml
+
+    def plaintexts(self: object, fileids: str):
+        for body in self.bodies(fileids):
+            body = ET.tostring(body)
+            body = ''.join(ET.fromstring(body).itertext())
+            plaintext = ' '.join(body.split())
+            yield plaintext
+
+    def books(self: object, fileids: str):
+        for body in self.bodies(fileids):
+            books = body.findall('.//tei:div[@subtype="book"]', self.ns)
+            yield books
+
+    def chapters(self: object, fileids: str):
+        for body in self.bodies(fileids):
+            chapters = body.findall('.//tei:div[@subtype="chapter"]', self.ns)
+            yield chapters
+
+    def paras(self: object, fileids: str):
+        for body in self.bodies(fileids):
+            paras = body.findall('.//tei:p', self.ns)
+            paras =  [" ".join(self.node_text(para).split('\n')) for para in paras]
+            for para in paras:
+                yield para
+
+
+
+
+    # def texts(self: object, fileids: str, plaintext: bool = True):
+    #     """
+    #     Returns the text content of a .tess file, i.e. removing the bracketed
+    #     citation info (e.g. "<Ach. Tat.  1.1.0>")
+    #     """
+    #
+    #     for doc in self.docs(fileids):
+    #         if plaintext == True:
+    #             doc = re.sub(r'<.+?>\s', '', doc)  # Remove citation info
+    #         doc = doc.rstrip()  # Clean up final line breaks
+    #         yield doc
+
+    # def paras(self: object, fileids: str):
+    #     """
+    #     Returns paragraphs in a .tess file, as defined by two \n characters.
+    #     NB: Most .tess files do not have this feature; only the Homeric poems
+    #     from what I have noticed so far. Perhaps a feature worth looking into.
+    #     """
+    #
+    #     for text in self.texts(fileids):
+    #         for para in text.split('\n\n'):
+    #             yield para
+
+    def lines(self: object, fileids: str, plaintext: bool = True):
+        """
+        Tokenizes documents in the corpus by line
+        """
+
+        for text in self.texts(fileids, plaintext):
+            text = re.sub(r'\n\s*\n', '\n', text, re.MULTILINE)  # Remove blank lines
+            for line in text.split('\n'):
+                yield line
+
+    def sents(self: object, fileids: str):
+        """
+        Tokenizes documents in the corpus by sentence
+        """
+
+        for para in self.paras(fileids):
+            for sent in sent_tokenize(para):
+                yield sent
+
+    def words(self: object, fileids: str):
+        """
+        Tokenizes documents in the corpus by word
+        """
+        for sent in self.sents(fileids):
+            for token in word_tokenize(sent):
+                yield token
+
+    def pos_tokenize(self: object, fileids: str):
+        """
+        Segments, tokenizes, and POS tag a document in the corpus.
+        """
+        for para in self.paras(fileids):
+            yield [
+                self.pos_tagger(word_tokenize(sent))
+                for sent in sent_tokenize(para)
+            ]
+
+    def describe(self: object, fileids: str = None):
+        """
+        Performs a single pass of the corpus and returns a dictionary with a
+        variety of metrics concerning the state of the corpus.
+
+        based on (Bengfort et al, 2018: 46)
+        """
+        started = time.time()
+
+        # Structures to perform counting
+        counts = FreqDist()
+        tokens = FreqDist()
+
+        # Perform a single pass over paragraphs, tokenize, and counts
+        for para in self.paras(fileids):
+            counts['paras'] += 1
+
+            for sent in para:
+                counts['sents'] += 1
+
+                # Include POS at some point
+                for word in sent:
+                    counts['words'] += 1
+                    tokens[word] += 1
+
+        # Compute the number of files in the corpus
+        n_fileids = len(self.fileids())
+
+        # Return data structure with information
+        return {
+            'files': n_fileids,
+            'paras': counts['paras'],
+            'sents': counts['sents'],
+            'words': counts['words'],
+            'vocab': len(tokens),
+            'lexdiv': round((counts['words'] / len(tokens)), 3),
+            'ppdoc': round((counts['paras'] / n_fileids), 3),
+            'sppar': round((counts['sents'] / counts['paras']), 3),
+            'secs': round((time.time() - started), 3),
+        }
+
+if __name__ == "__main__":
+    from pprint import pprint
+    r = TEICorpusReader('cltk/corpus')
+    for i, text in enumerate(r.paras(r.fileids()), 1):
+        print(f'{i}:\n{text}')
+        print('\n')
