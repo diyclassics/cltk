@@ -7,6 +7,11 @@ __license__ = 'MIT License. See LICENSE.'
 
 import re
 
+ENDINGS_PRESENT_3 = r"o|is|it|imus|itis|unt|ebam|ebas|ebat|ebamus|ebatis|ebant|em|es|et|emus|etis|ent|am|as|at|amus|atis|ant|or|eris|itur|imur|imini|untur|ebar|ebaris|ebatur|ebamur|ebamini|ebantur|ar|eris|etur|emur|emini|entur"
+ENDINGS_PERFECT = r"i|isti|it|imus|istis|erunt|eram|eras|erat|eramus|eratis|erant|ero|eris|erit|erimus|eritis|erint|erim|isse|isses|isset|issemus|issetis|issent"
+ENDINGS_12_DEC = r"arum|orum|ae|am|as|us|um|is|os|a|i|o"
+ENDINGS_3_DEC = r"is|e|i|em|um|ibus|es"
+
 class JVReplacer(object):  # pylint: disable=R0903
     """Replace J/V with I/U."""
 
@@ -29,14 +34,55 @@ class JVReplacer(object):  # pylint: disable=R0903
             if keep_capital==True:
                 self.patterns = [(re.compile(regex), repl) for (regex, repl) in self.patterns_]
         else:
-            patterns = [(r'(?<!b|c|d|f|g|h|m|n|p|q|s|t)'
-                        '(?<!bl|br|cr|el|ex|fl|fr|gr|il|ll|nr|ol|pl|pr|rl|rr|tr)'
-                        '(?<!\br|\bl)'
-                        '(?<!\ber)'
-                        '(?<!car|dir|dur|mer|mal|tur)'
+            patterns = [('(?<!car|dir|dur|mer|mal|tur)'
+                        '(?<!bl|br|cr|dr|el|ex|fl|fr|gr|il|ll|nr|ol|pl|pr|rl|rr|tr)'
+                        '(?<!b|c|d|f|g|h|m|n|p|q|s|t)'
                         'u'
                         '(?=a|i|e|o|u)', 'v')
                         ]
+            patterns += [(r'(?<=\bab|\bad|\bex|\bin|\bob)u(?=a|e|i|o|u)','v'),
+                         (r'(?<=\bcon|\bper|\bsub)u(?=a|e|i|o|u)','v'),
+                         (r'(?<=\btrans)u(?=a|e|i|o|u)','v'),
+                         (r'(?<=\bcircum)u(?=a|e|i|o|u)','v'),
+                         (r'(?<=\but)ue', 've'),
+                         (r'(?<=\bquam|\bquem|\bquid|\bquod)u', 'v'),
+                         (r'(?<=\baliud|\bcuius)u', 'v'),
+                         (r'(?<=\bquantas)u','v'),
+                         (r'(?<=hel)u','v'),
+                         (r'(?<=animad)u','v'),
+                         ]
+            patterns += [(r'vv','uv'),
+                         (r'ivv','iuv'),
+                         (r'luu','lvu'),
+                         (r'muir','mvir'),
+                         (r'(?<!a|e|i|o|u)lv','lu'),
+                         # (r'(?<!\br)u', 'v')
+                         ]
+            patterns += [(r'(?<=q)ve\b','ue'),
+                         (r'(?<=m|s)ue\b', 've')
+                         ]
+
+            # Try to find more generalizations?
+            exc_patterns = [(rf'\bexv({ENDINGS_PRESENT_3})(que)?\b','exu\g<1>\g<2>'),
+                            (rf'\beserui({ENDINGS_PRESENT_3})(que)?\b','servi\g<1>\g<2>'),
+                            (rf'\b(ex)?arv({ENDINGS_PERFECT})(que)?\b', '\g<1>aru\g<2>\g<3>'),
+                            (rf'\b(con)?v(a|o)lv({ENDINGS_PERFECT})(que)?\b', '\g<1>v\g<2>lu\g<3>\g<4>'),
+                            (rf'\b(a|ad|ap)?p(a|e)rv({ENDINGS_PERFECT})(que)?', '\g<1>p\g<2>ru\g<3>\g<4>'),
+                            (rf'\b(con|in|oc|per)?c(a|u)lv({ENDINGS_PERFECT})(que)?', '\g<1>c\g<2>lu\g<3>\g<4>'),
+                            (rf'\b(e|pro)?rv({ENDINGS_PERFECT})(que)?','\g<1>ru\g<2>\g<3>'),
+                            (rf'\b(ab|dis|per|re)?solu({ENDINGS_PERFECT})(que)?', '\g<1>solv\g<2>\g<3>'),
+                            (rf'\b(de)?serv({ENDINGS_PERFECT})(que)?', '\g<1>seru\g<2>\g<3>'),
+                            (rf'\balv({ENDINGS_PERFECT})(que)?','alu\g<1>\g<2>'),
+                            (r'\bsiluestr(is|e|i|em|um|ibus|es)','silvestr\g<1>'),
+                            (rf'\bseruitu(s|t)({ENDINGS_3_DEC})(que)?','servitu\g<1>\g<2>\g<3>'),
+                            (rf'\bseruil({ENDINGS_3_DEC})(que)?','servil\g<1>\g<2>'),
+                            (rf'\b(ca|pa|se|si|va)(l|r)u({ENDINGS_12_DEC})(que)?\b','\g<1>\g<2>v\g<3>\g<4>'),
+                            (rf'\bAdvatuc({ENDINGS_12_DEC})(que)?\b','Aduatuc\g<1>\g<2>'),
+                            (rf'\bCaruili({ENDINGS_12_DEC})(que)?\b','Carvili\g<1>\g<2>'),
+                            (rf'\bserui(an|re)(m|s|t|mus|tis|nt)(que)?','servi\g<1>\g<2>\g<3>'),
+                            # (rf'\b(con|e|in|ob)?v(a|o|u)lu({ENDINGS_PRESENT_3})', '\g<1>v\g<2>lv\g<3>'),
+                            ]
+            patterns += exc_patterns
             self.patterns += [(re.compile(regex, flags=re.IGNORECASE), repl) for (regex, repl) in patterns]
 
         for (pattern, repl) in self.patterns:
@@ -45,6 +91,8 @@ class JVReplacer(object):  # pylint: disable=R0903
             else:
                 text = re.subn(pattern, repl, text)[0]
 
+        if keep_capital:
+            text = re.sub('U', 'V', text)
 
         # Should this work on lowercase?
         if keep_rns==True:
@@ -70,63 +118,24 @@ class JVReplacer(object):  # pylint: disable=R0903
 
 if __name__ == "__main__":
     r = JVReplacer()
-    with open('./test.txt') as file:
-        text_in = file.read()
+    text_in = """
+    Arma virumque cano, Troiae qui primus ab oris
+    Italiam, fato profugus, Laviniaque venit
+    litora, multum ille et terris iactatus et alto
+    vi superum saevae memorem Iunonis ob iram."""
+    print('\n')
+    print(f'Original:\n{text_in}\n')
 
-    test = r.replace(text_in, keep_capital=True)
-    # print(f'All u:\n{test}\n\n')
-    text_out = r.replace(test, uv_target='v')
-    print(text_out)
-    print(text_in == text_out)
+    text_temp = r.replace(text_in)
+    print(f'Normalized to u:\n{text_temp}\n')
 
-    diffs = [i for i in range(len(text_in)) if text_in[i] != text_out[i]]
+    text_out = r.replace(text_temp, uv_target='v')
+    print(f'Returned to consonantal v:\n{text_out}\n')
 
-    for diff in diffs:
-        warn = text_out[diff-10:diff+10]
-        if 'olu' not in warn and 'ser' not in warn and 'Ser' not in warn and 'sil' not in warn:
-            print(warn,'\n')
-            pass
-
-#             patterns += [
-#                         (r'(?<=\bab|\bad|\bin|\bob)u(?=a|e|i|o|u)','v'),
-#                          (r'(?<=\bcon|\bsub)u(?=a|e|i|o|u)','v'),
-#                          (r'(?<=\btrans)u(?=a|e|i|o|u)','v'),
-#                          (r'(?<=\bcircum)u(?=a|e|i|o|u)','v'),
-#
-#                          (r'(?<=\bquam|\bquid|\bquod)u', 'v'),
-#                          (r'(?<=\baliud)u', 'v'),
-#                          ]
-#             exc_patterns = [
-#                             (r'(<=q)ve\b','ue'),
-#                             (r'(?<!d|g|n|p|t)ue\b', 've'),
-#                             (r'(?<!ll)ue', 've'),
-#                             (r'brv', 'bru'),
-#                             (r'vv','uv'),
-#                             (r'a(d|p)parv','a\g<1>paru'),
-#                             (r'aperv', 'aperu'),
-#                             (r'volveri','volueri'),
-#                             (r'comparv','comparu'),
-#                             (r'convoluit','convolvit'),
-#                             (r'resolua','resolva'),
-#                             (r'seruitu', 'servitu'),
-#                             (r'\bdeservit\b', 'deseruit'),
-#                             (r'convalv','convalu'),
-#                             (r'c(a|o|u)lv','c\g<1>lu'),
-#                             (r'\brevolu','revolv'),
-#                             (r'\bsilua', 'silva'),
-#                             (r'\bsilui', 'silvi'),
-#                             (r'caluis(.+)', 'Calvis\g<1>'),
-#                             (r'v(a|o)lv(e|i)', 'v\g<1>lu\g<2>'),
-#                             (r'\bvolue\b', 'volve'),
-#
-#
-#
-#                             ]  #Try to generalize exceptions?
-#             patterns += exc_patterns
-#
-#
-#
-#         return text
-#
-
-#
+    print(f'V-version matches original: {text_in == text_out}')
+    
+    # diffs = [i for i in range(len(text_in)) if text_in[i] != text_out[i]]
+    #
+    # for diff in diffs:
+    #     warn = text_out[diff-10:diff+10]
+    #     print(warn,'\n')
