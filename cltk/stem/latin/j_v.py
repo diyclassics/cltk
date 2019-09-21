@@ -1,10 +1,11 @@
-"""Functions for replacing j/J and v/V to i/I and u/U"""
+"""Functions for normalize i/I j/J, u/V in Latin"""
 
-__author__ = ['Kyle P. Johnson <kyle@kyle-p-johnson.com>']
+__author__ = ['Kyle P. Johnson <kyle@kyle-p-johnson.com>',
+              'Patrick J. Burns <patrick@diyclassics.org>',
+              ]
 __license__ = 'MIT License. See LICENSE.'
 
 import re
-
 
 class JVReplacer(object):  # pylint: disable=R0903
     """Replace J/V with I/U."""
