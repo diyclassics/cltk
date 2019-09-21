@@ -16,14 +16,25 @@ class JVReplacer(object):  # pylint: disable=R0903
         self.patterns = \
             [(re.compile(regex), repl) for (regex, repl) in patterns]
 
-    def replace(self, text, uv_target='u', keep_capital=False, keep_rns=True):
+    def replace(self, text, uv_target='u', ij_target='i', keep_capital=False, keep_rns=True):
         """Do j/v replacement"""
         # Finish doc string
         # Add typing
+        if uv_target not in ['u', 'v']:
+            raise ValueError("uv_target can only by 'u' or 'v'")
+        if ij_target not in ['i', 'j']:
+            raise ValueError("ij_target can only by 'i' or 'j'")
+
+        if uv_target=="u":
+            pass
+        else:
+            pass
+
 
         return text
 
     def matchcase(self, word):
+        # Move to utils?
         """helper function From Python Cookbook"""
         def replace(matching):
             text = matching.group()
@@ -36,16 +47,6 @@ class JVReplacer(object):  # pylint: disable=R0903
             return word
         return replace
 
-
-# class JVReplacer(object):  # pylint: disable=R0903
-#     """Replace J/V with I/U."""
-#
-#     def __init__(self):
-#         """Initialization for JVReplacer, reads replacement pattern tuple."""
-#         patterns = [(r'j', 'i'), (r'v', 'u'), (r'J', 'I'), (r'V', 'U')]
-#         self.patterns = \
-#             [(re.compile(regex), repl) for (regex, repl) in patterns]
-#
 #     def replace(self, text, uv_target='u', keep_capital=False, keep_rns=True):
 #         """Do j/v replacement"""
 #         if uv_target=='u':
