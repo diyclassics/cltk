@@ -17,22 +17,9 @@ class JVReplacer(object):  # pylint: disable=R0903
 
     def __init__(self):
         """Initialization for JVReplacer, reads replacement pattern tuple."""
-        self.patterns_ = [(r'j', 'i'), (r'v', 'u')] # Simple case
-        self.patterns = \
-            [(re.compile(regex), repl) for (regex, repl) in self.patterns_]
-
-    # def tokenize(self, text: str, model: object = None):
-    #     """
-    #     Method for tokenizing sentences with pretrained punkt models; can
-    #     be overridden by language-specific tokenizers.
-    #
-    #     :rtype: list
-    #     :param text: text to be tokenized into sentences
-    #     :type text: str
-    #     :param model: tokenizer object to used # Should be in init?
-    #     :type model: object
-    #     """
-    # language: str = None
+        # Moving regex compiles to function; so user can choose direction
+        # May still want to compile all possibilites here to improve speed
+        pass
 
     def replace(self, text: str, uv_target: str = 'u', ij_target: str = 'i', keep_capital: bool = False, keep_rns: bool = True):
         """
@@ -40,21 +27,23 @@ class JVReplacer(object):  # pylint: disable=R0903
         :rtype: string
         :param text: text to be normalized
         :param uv_target: defines the direction of u/v normalization
-        :param ij_target: defines the direction of i/j normalization
+        :param ij_target: defines the direction of i/j normalization; NOT IMPLEMENTED YET
         :param keep_capital: allows user to leave capital V in u normalization; e.g. 'Vale' not 'Uale'.
         :param keep_rns: allows user to leave roman numerals out of normalization; e,g, 'XVI' not XUI.
         """
-        # Finish doc string
+        patterns = [(r'j', 'i')] # Replace when ij_target is implemented
+
         if uv_target not in ['u', 'v']:
             raise ValueError("uv_target can only by 'u' or 'v'")
         if ij_target not in ['i', 'j']:
             raise ValueError("ij_target can only by 'i' or 'j'")
 
         if uv_target=="u":
+            patterns += [(r'v', 'u')]
             if keep_capital==True:
-                self.patterns = [(re.compile(regex), repl) for (regex, repl) in self.patterns_]
+                patterns = [(re.compile(regex), repl) for (regex, repl) in patterns]
         else:
-            patterns = [('(?<!car|dir|dur|mer|mal|tur)'
+            patterns += [('(?<!car|dir|dur|mer|mal|tur)'
                         '(?<!bl|br|cr|dr|el|ex|fl|fr|gr|il|ll|nr|ol|pl|pr|rl|rr|tr)'
                         '(?<!b|c|d|f|g|h|m|n|p|q|s|t)'
                         'u'
@@ -103,9 +92,9 @@ class JVReplacer(object):  # pylint: disable=R0903
                             # (rf'\b(con|e|in|ob)?v(a|o|u)lu({ENDINGS_PRESENT_3})', '\g<1>v\g<2>lv\g<3>'),
                             ]
             patterns += exc_patterns
-            self.patterns += [(re.compile(regex, flags=re.IGNORECASE), repl) for (regex, repl) in patterns]
+            patterns += [(re.compile(regex, flags=re.IGNORECASE), repl) for (regex, repl) in patterns]
 
-        for (pattern, repl) in self.patterns:
+        for (pattern, repl) in patterns:
             if '\g' not in repl:
                 text = re.subn(pattern, self.matchcase(repl), text)[0]
             else:
@@ -153,6 +142,9 @@ if __name__ == "__main__":
     print(f'Returned to consonantal v:\n{text_out}\n')
 
     print(f'V-version matches original: {text_in == text_out}')
+
+    r2 = JVReplacer()
+    print(r2.replace('vem'))
 
     # diffs = [i for i in range(len(text_in)) if text_in[i] != text_out[i]]
     #
