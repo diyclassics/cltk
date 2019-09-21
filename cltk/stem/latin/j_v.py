@@ -40,9 +40,8 @@ class JVReplacer(object):  # pylint: disable=R0903
 
         if uv_target=="u":
             patterns += [(r'v', 'u')]
-            if keep_capital==True:
-                patterns = [(re.compile(regex), repl) for (regex, repl) in patterns]
         else:
+            # Consolidate patterns?
             patterns += [('(?<!car|dir|dur|mer|mal|tur)'
                         '(?<!bl|br|cr|dr|el|ex|fl|fr|gr|il|ll|nr|ol|pl|pr|rl|rr|tr)'
                         '(?<!b|c|d|f|g|h|m|n|p|q|s|t)'
@@ -92,9 +91,14 @@ class JVReplacer(object):  # pylint: disable=R0903
                             # (rf'\b(con|e|in|ob)?v(a|o|u)lu({ENDINGS_PRESENT_3})', '\g<1>v\g<2>lv\g<3>'),
                             ]
             patterns += exc_patterns
-            patterns += [(re.compile(regex, flags=re.IGNORECASE), repl) for (regex, repl) in patterns]
+
+        if keep_capital==True:
+            patterns = [(re.compile(regex), repl) for (regex, repl) in patterns]
+        else:
+            patterns = [(re.compile(regex, flags=re.IGNORECASE), repl) for (regex, repl) in patterns]
 
         for (pattern, repl) in patterns:
+            # Rewrite matchcase to handle groups
             if '\g' not in repl:
                 text = re.subn(pattern, self.matchcase(repl), text)[0]
             else:
@@ -127,11 +131,11 @@ class JVReplacer(object):  # pylint: disable=R0903
 
 if __name__ == "__main__":
     r = JVReplacer()
-    text_in = """
-    Arma virumque cano, Troiae qui primus ab oris
+    text_in = """Arma virumque cano, Troiae qui primus ab oris
     Italiam, fato profugus, Laviniaque venit
     litora, multum ille et terris iactatus et alto
     vi superum saevae memorem Iunonis ob iram."""
+
     print('\n')
     print(f'Original:\n{text_in}\n')
 
@@ -142,12 +146,3 @@ if __name__ == "__main__":
     print(f'Returned to consonantal v:\n{text_out}\n')
 
     print(f'V-version matches original: {text_in == text_out}')
-
-    r2 = JVReplacer()
-    print(r2.replace('vem'))
-
-    # diffs = [i for i in range(len(text_in)) if text_in[i] != text_out[i]]
-    #
-    # for diff in diffs:
-    #     warn = text_out[diff-10:diff+10]
-    #     print(warn,'\n')
