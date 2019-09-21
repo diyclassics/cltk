@@ -35,7 +35,15 @@ class JVReplacer(object):  # pylint: disable=R0903
     # language: str = None
 
     def replace(self, text: str, uv_target: str = 'u', ij_target: str = 'i', keep_capital: bool = False, keep_rns: bool = True):
-        """Do j/v replacement"""
+        """
+        Do j/v replacement
+        :rtype: string
+        :param text: text to be normalized
+        :param uv_target: defines the direction of u/v normalization
+        :param ij_target: defines the direction of i/j normalization
+        :param keep_capital: allows user to leave capital V in u normalization; e.g. 'Vale' not 'Uale'.
+        :param keep_rns: allows user to leave roman numerals out of normalization; e,g, 'XVI' not XUI.
+        """
         # Finish doc string
         if uv_target not in ['u', 'v']:
             raise ValueError("uv_target can only by 'u' or 'v'")
