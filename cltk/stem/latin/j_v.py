@@ -16,11 +16,26 @@ class JVReplacer(object):  # pylint: disable=R0903
         self.patterns = \
             [(re.compile(regex), repl) for (regex, repl) in patterns]
 
-    def replace(self, text):
+    def replace(self, text, uv_target='u', keep_capital=False, keep_rns=True):
         """Do j/v replacement"""
-        for (pattern, repl) in self.patterns:
-            text = re.subn(pattern, repl, text)[0]
+        # Finish doc string
+        # Add typing
+
         return text
+
+    def matchcase(self, word):
+        """helper function From Python Cookbook"""
+        def replace(matching):
+            text = matching.group()
+            if text.isupper():
+                return word.upper()
+            elif text.islower():
+                return word.lower()
+            elif text[0].isupper():
+                return word.capitalize()
+            return word
+        return replace
+
 
 # class JVReplacer(object):  # pylint: disable=R0903
 #     """Replace J/V with I/U."""
@@ -95,18 +110,7 @@ class JVReplacer(object):  # pylint: disable=R0903
 #
 #         return text
 #
-#     def matchcase(self, word):
-#         """helper function From Python Cookbook"""
-#         def replace(matching):
-#             text = matching.group()
-#             if text.isupper():
-#                 return word.upper()
-#             elif text.islower():
-#                 return word.lower()
-#             elif text[0].isupper():
-#                 return word.capitalize()
-#             return word
-#         return replace
+
 #
 # if __name__ == "__main__":
 #     r = JVReplacer()
