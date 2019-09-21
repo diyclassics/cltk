@@ -30,6 +30,12 @@ class JVReplacer(object):  # pylint: disable=R0903
                 self.patterns = [(re.compile(regex), repl) for (regex, repl) in self.patterns_]
         else:
             pass
+
+        if keep_rns==True:
+            text = re.sub(r'\b(M{1,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IU|U?I{0,3})|M{0,4}(CM|C?D|D?C{1,3})(XC|XL|L?X{0,3})(IX|IU|U?I{0,3})|M{0,4}(CM|CD|D?C{0,3})(XC|X?L|L?X{1,3})(IX|IU|U?I{0,3})|M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|I?U|U?I{1,3}))\b','~~~\g<1>~~~', text)
+            text = re.sub(r'~~~(.*)(U)(.*)~~~', '\g<1>V\g<3>', text)
+            text = re.sub(r'~~~','',text)
+            
         return text
 
     def matchcase(self, word):
@@ -97,10 +103,6 @@ class JVReplacer(object):  # pylint: disable=R0903
 #             else:
 #                 text = re.subn(pattern, repl, text)[0]
 #
-#         if keep_rns==True:
-#             text = re.sub(r'\b(M{1,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IU|U?I{0,3})|M{0,4}(CM|C?D|D?C{1,3})(XC|XL|L?X{0,3})(IX|IU|U?I{0,3})|M{0,4}(CM|CD|D?C{0,3})(XC|X?L|L?X{1,3})(IX|IU|U?I{0,3})|M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|I?U|U?I{1,3}))\b','~~~\g<1>~~~', text)
-#             text = re.sub(r'~~~(.*)(U)(.*)~~~', '\g<1>V\g<3>', text)
-#             text = re.sub(r'~~~','',text)
 #
 #         return text
 #
