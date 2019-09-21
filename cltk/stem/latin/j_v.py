@@ -21,10 +21,22 @@ class JVReplacer(object):  # pylint: disable=R0903
         self.patterns = \
             [(re.compile(regex), repl) for (regex, repl) in self.patterns_]
 
-    def replace(self, text, uv_target='u', ij_target='i', keep_capital=False, keep_rns=True):
+    # def tokenize(self, text: str, model: object = None):
+    #     """
+    #     Method for tokenizing sentences with pretrained punkt models; can
+    #     be overridden by language-specific tokenizers.
+    #
+    #     :rtype: list
+    #     :param text: text to be tokenized into sentences
+    #     :type text: str
+    #     :param model: tokenizer object to used # Should be in init?
+    #     :type model: object
+    #     """
+    # language: str = None
+
+    def replace(self, text: str, uv_target: str = 'u', ij_target: str = 'i', keep_capital: bool = False, keep_rns: bool = True):
         """Do j/v replacement"""
         # Finish doc string
-        # Add typing
         if uv_target not in ['u', 'v']:
             raise ValueError("uv_target can only by 'u' or 'v'")
         if ij_target not in ['i', 'j']:
@@ -102,7 +114,7 @@ class JVReplacer(object):  # pylint: disable=R0903
 
         return text
 
-    def matchcase(self, word):
+    def matchcase(self, str: word):
         # Move to utils?
         """helper function From Python Cookbook"""
         def replace(matching):
@@ -133,7 +145,7 @@ if __name__ == "__main__":
     print(f'Returned to consonantal v:\n{text_out}\n')
 
     print(f'V-version matches original: {text_in == text_out}')
-    
+
     # diffs = [i for i in range(len(text_in)) if text_in[i] != text_out[i]]
     #
     # for diff in diffs:
