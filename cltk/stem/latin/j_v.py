@@ -128,21 +128,3 @@ class JVReplacer(object):  # pylint: disable=R0903
                 return word.capitalize()
             return word
         return replace
-
-if __name__ == "__main__":
-    r = JVReplacer()
-    text_in = """Arma virumque cano, Troiae qui primus ab oris
-    Italiam, fato profugus, Laviniaque venit
-    litora, multum ille et terris iactatus et alto
-    vi superum saevae memorem Iunonis ob iram."""
-
-    print('\n')
-    print(f'Original:\n{text_in}\n')
-
-    text_temp = r.replace(text_in)
-    print(f'Normalized to u:\n{text_temp}\n')
-
-    text_out = r.replace(text_temp, uv_target='v')
-    print(f'Returned to consonantal v:\n{text_out}\n')
-
-    print(f'V-version matches original: {text_in == text_out}')
