@@ -31,11 +31,12 @@ class JVReplacer(object):  # pylint: disable=R0903
         else:
             pass
 
+        # Should this work on lowercase?
         if keep_rns==True:
             text = re.sub(r'\b(M{1,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IU|U?I{0,3})|M{0,4}(CM|C?D|D?C{1,3})(XC|XL|L?X{0,3})(IX|IU|U?I{0,3})|M{0,4}(CM|CD|D?C{0,3})(XC|X?L|L?X{1,3})(IX|IU|U?I{0,3})|M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|I?U|U?I{1,3}))\b','~~~\g<1>~~~', text)
             text = re.sub(r'~~~(.*)(U)(.*)~~~', '\g<1>V\g<3>', text)
             text = re.sub(r'~~~','',text)
-            
+
         return text
 
     def matchcase(self, word):
@@ -51,6 +52,26 @@ class JVReplacer(object):  # pylint: disable=R0903
                 return word.capitalize()
             return word
         return replace
+
+if __name__ == "__main__":
+    r = JVReplacer()
+    with open('./test.txt') as file:
+        text_in = file.read()
+
+    test = r.replace(text_in, keep_capital=True)
+    # print(f'All u:\n{test}\n\n')
+    text_out = r.replace(test, uv_target='v')
+    print(text_out)
+    print(text_in == text_out)
+
+    diffs = [i for i in range(len(text_in)) if text_in[i] != text_out[i]]
+
+    for diff in diffs:
+        warn = text_out[diff-10:diff+10]
+        if 'olu' not in warn and 'ser' not in warn and 'Ser' not in warn and 'sil' not in warn:
+            print(warn,'\n')
+            pass
+
 
 #     def replace(self, text, uv_target='u', keep_capital=False, keep_rns=True):
 #         """Do j/v replacement"""
@@ -108,34 +129,3 @@ class JVReplacer(object):  # pylint: disable=R0903
 #
 
 #
-# if __name__ == "__main__":
-#     r = JVReplacer()
-#     with open('./test.txt') as file:
-#         text_in = file.read()
-#
-#     test = r.replace(text_in, keep_capital=True)
-#     # print(f'All u:\n{test}\n\n')
-#     text_out = r.replace(test, uv_target='v')
-#     print(text_out)
-#     print(text_in == text_out)
-#
-#     diffs = [i for i in range(len(text_in)) if text_in[i] != text_out[i]]
-#
-#     for diff in diffs:
-#         warn = text_out[diff-10:diff+10]
-#         if 'olu' not in warn and 'ser' not in warn and 'Ser' not in warn and 'sil' not in warn:
-#             print(warn,'\n')
-#             pass
-#     # #
-#     # import difflib
-#     #
-#     # cases = [(text_in, text_out)]
-#     #
-#     # for a,b in cases:
-#     #     for i,s in enumerate(difflib.ndiff(a, b)):
-#     #         if s[0]==' ': continue
-#     #         elif s[0]=='-':
-#     #             print(u'Delete "{}" from position {}'.format(s[-1],i))
-#     #             print(b[i-5:i+5])
-#     #         elif s[0]=='+':
-#     #             print(u'Add "{}" to position {}'.format(s[-1],i))
