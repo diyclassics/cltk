@@ -122,7 +122,7 @@ class JVReplacer(object):  # pylint: disable=R0903
 
         return text
 
-    def matchcase(self, str: word):
+    def matchcase(self, word: str):
         # Move to utils?
         """helper function From Python Cookbook"""
         def replace(matching):
