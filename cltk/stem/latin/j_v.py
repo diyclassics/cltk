@@ -12,9 +12,9 @@ class JVReplacer(object):  # pylint: disable=R0903
 
     def __init__(self):
         """Initialization for JVReplacer, reads replacement pattern tuple."""
-        patterns = [(r'j', 'i'), (r'v', 'u')] # Simple case
+        self.patterns_ = [(r'j', 'i'), (r'v', 'u')] # Simple case
         self.patterns = \
-            [(re.compile(regex), repl) for (regex, repl) in patterns]
+            [(re.compile(regex), repl) for (regex, repl) in self.patterns_]
 
     def replace(self, text, uv_target='u', ij_target='i', keep_capital=False, keep_rns=True):
         """Do j/v replacement"""
@@ -26,11 +26,10 @@ class JVReplacer(object):  # pylint: disable=R0903
             raise ValueError("ij_target can only by 'i' or 'j'")
 
         if uv_target=="u":
-            pass
+            if keep_capital==True:
+                self.patterns = [(re.compile(regex), repl) for (regex, repl) in self.patterns_]
         else:
             pass
-
-
         return text
 
     def matchcase(self, word):
@@ -50,11 +49,6 @@ class JVReplacer(object):  # pylint: disable=R0903
 #     def replace(self, text, uv_target='u', keep_capital=False, keep_rns=True):
 #         """Do j/v replacement"""
 #         if uv_target=='u':
-#             patterns = [(r'v', 'u')]
-#             if keep_capital==True:
-#                 self.patterns = [(re.compile(regex), repl) for (regex, repl) in patterns]
-#             else:
-#                 self.patterns = [(re.compile(regex, flags=re.IGNORECASE), repl) for (regex, repl) in patterns]
 #
 #         elif uv_target=='v':
 #             patterns = [(r'(?<!b|c|d|f|g|h|m|n|p|q|s|t)(?<!bl|br|cr|el|ex|fl|fr|gr|il|ll|nr|ol|pl|pr|rl|rr|tr)(?<!\br|\bl)(?<!\ber)(?<!car|dir|dur|mer|mal|tur)u(?=a|i|e|o|u)', 'v')]
@@ -96,8 +90,7 @@ class JVReplacer(object):  # pylint: disable=R0903
 #             patterns += exc_patterns
 #
 #             self.patterns = [(re.compile(regex, flags=re.IGNORECASE), repl) for (regex, repl) in patterns]
-#         else:
-#             patterns = [] # should throw error
+
 #         for (pattern, repl) in self.patterns:
 #             if '\g' not in repl:
 #                 text = re.subn(pattern, self.matchcase(repl), text)[0]
