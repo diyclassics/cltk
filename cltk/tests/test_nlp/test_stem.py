@@ -46,11 +46,49 @@ class TestSequenceFunctions(unittest.TestCase):  # pylint: disable=R0904
         except:
             raise Exception('Failure to download test corpus')
 
-    def test_latin_i_u_transform(self):
+    def test_latin_i_u_normalization(self):
         """Test converting ``j`` to ``i`` and ``v`` to ``u``."""
+        # Dares, Exc. Tr. 1
+        text = "Pelias rex Argum architectum vocari jussit, "
+        "et ei imperat ut navem aedificaret quam pulcherrimam, "
+        "ad voluntatem Jasonis."
+        target = "Pelias rex Argum architectum uocari iussit, "
+        "et ei imperat ut nauem aedificaret quam pulcherrimam, "
+        "ad uoluntatem Iasonis."
         jv_replacer = JVReplacer()
-        trans = jv_replacer.replace('vem jam VEL JAM')
-        self.assertEqual(trans, 'uem iam UEL IAM')
+        normalized = jv_replacer.replace(text)
+        self.assertEqual(normalized, target)
+
+    def test_latin_i_u_normalization_target_v(self):
+        """Test converting u back to consonantal v."""
+        # Dares, Exc. Tr. 1
+        text = "Pelias rex Argum architectum uocari iussit, "
+        "et ei imperat ut nauem aedificaret quam pulcherrimam, "
+        "ad uoluntatem Iasonis."
+        target = "Pelias rex Argum architectum vocari iussit, "
+        "et ei imperat ut navem aedificaret quam pulcherrimam, "
+        "ad voluntatem Jasonis."
+        jv_replacer = JVReplacer()
+        normalized = jv_replacer.replace(text, uv_target='v')
+        self.assertEqual(normalized, target)
+
+    def test_latin_i_u_normalization_keep_capital(self):
+        """Test converting u back to consonantal v."""
+        # Sen. Ep. Mor. 1.4
+        text = "Cui cum paupertate bene convenit dives est. Vale."
+        target = "Cui cum paupertate bene conuenit diues est. Vale."
+        jv_replacer = JVReplacer()
+        normalized = jv_replacer.replace(text, keep_capital=True)
+        self.assertEqual(normalized, target)
+
+    def test_latin_i_u_normalization_keep_rns(self):
+        """Test converting u back to consonantal v."""
+        # Asconius
+        text = "Tanta igitur in illis virtus fuit ut anno XVI post reges exactos"
+        target = "Tanta igitur in illis uirtus fuit ut anno XVI post reges exactos"
+        jv_replacer = JVReplacer()
+        normalized = jv_replacer.replace(text, keep_rns=True)
+        self.assertEqual(normalized, target)
 
     def test_latin_stemmer(self):
         """Test Latin stemmer."""
